@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Task Manager</title>
+    <style>
+/* Style for the entire page */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+    background-image: url('https://images.pexels.com/photos/1037999/pexels-photo-1037999.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'); 
+    margin: 0;
+    padding: 0;
+    background-size: cover;
+    background-repeat: no-repeat; 
+    margin: 0;
+    padding: 0;
+    background-size: 200%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background-position: center;
+ 
+}
+
+/* Style for the header */
+h1 {
+    color: #333;
+}
+
+/* Style for the task input and add button */
+#taskInput {
+    width: 300px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button {
+    background-color: #f191b4;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Style for the task list */
+#taskList {
+    list-style-type: none;
+    padding: 0;
+    max-width: 400px;
+    text-align: left;
+}
+
+li {
+    background-color: #fff;
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Style for completed tasks */
+li.completed {
+    text-decoration: line-through;
+}
+
+/* Style for the delete button */
+button.delete {
+    background-color: #f44336;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+/* Style for the completed button */
+button.completed {
+    background-color: #ea8dc7;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+
+
+    </style>
+</head>
+<body>
+    <h1>Task Manager</h1>
+
+    <input type="text" id="taskInput" placeholder="Add a task">
+    <button onclick="addTask()">Add Task</button>
+
+    <ul id="taskList">
+    </ul>
+
+    <script>
+        // Function to load tasks from the server
+        function loadTasks() {
+            fetch('/tasks')
+                .then(response => response.json())
+                .then(tasks => {
+                    const taskList = document.getElementById('taskList');
+                    taskList.innerHTML = '';
+
+                    tasks.forEach(task => {
+                        const li = document.createElement('li');
+                        li.textContent = task.description;
+
+                        if (task.completed) {
+                            li.style.textDecoration = 'line-through';
+                        }
+
+                        li.onclick = () => toggleTaskComplete(task);
+
+                        const deleteButton = document.createElement('button');
+                        deleteButton.textContent = 'Delete';
+                        deleteButton.onclick = () => deleteTask(task.id.toString()); // Convert the ID to a string
+
+                        li.appendChild(deleteButton);
+                        taskList.appendChild(li);
+                    });
+                });
+        }
+
+        // Function to add a new task
+        function addTask() {
+            const taskInput = document.getElementById('taskInput');
+            const description = taskInput.value;
+
+            fetch('/tasks', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `description=${description}`
+            })
+            .then(response => {
+                if (response.status === 201) {
+                    taskInput.value = '';
+                    loadTasks();
+                }
+            });
+        }
+
+        // Function to delete a task
+        function deleteTask(taskId) {
+            fetch(`/tasks/${taskId}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (response.status === 200) {
+                    loadTasks();
+                }
+            });
+        }
+
+        // Function to toggle task completion
+      // Function to toggle task completion
+      function toggleTaskComplete(task) {
+    console.log("Toggling task:", task._id); // Add this line for debugging
+
+    fetch(`/tasks/${task.id}`, {
+        method: 'PUT'
+    })
+    .then(response => {
+        if (response.status === 200) {
+            console.log("Task toggled successfully."); // Add this line for debugging
+            loadTasks(); // Reload the task list after the update
+        } else {
+            console.log("Failed to toggle task."); // Add this line for debugging
+        }
+    });
+}
+
+
+
+        // Load tasks on page load
+        loadTasks();
+    </script>
+</body>
+</html>
+
+
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Task Manager</title>
+</head>
+<body>
+    <h1>Task Manager</h1>
+
+    <input type="text" id="taskInput" placeholder="Add a task">
+    <button onclick="addTask()">Add Task</button>
+
+    <ul id="taskList">
+    </ul>
+
+    <script>
+        // Function to load tasks from the server
+        function loadTasks() {
+            fetch('/tasks')
+                .then(response => response.json())
+                .then(tasks => {
+                    const taskList = document.getElementById('taskList');
+                    taskList.innerHTML = '';
+
+                    tasks.forEach(task => {
+                        const li = document.createElement('li');
+                        li.textContent = task.description;
+
+                        if (task.completed) {
+                            li.style.textDecoration = 'line-through';
+                        }
+
+                        li.onclick = () => toggleTaskComplete(task);
+
+                        const deleteButton = document.createElement('button');
+                        deleteButton.textContent = 'Delete';
+                        deleteButton.onclick = () => deleteTask(task._id);
+
+                        li.appendChild(deleteButton);
+                        taskList.appendChild(li);
+                    });
+                });
+        }
+
+        // Function to add a new task
+        function addTask() {
+            const taskInput = document.getElementById('taskInput');
+            const description = taskInput.value;
+
+            fetch('/tasks', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `description=${description}`
+            })
+            .then(response => {
+                if (response.status === 201) {
+                    taskInput.value = '';
+                    loadTasks();
+                }
+            });
+        }
+
+        // Function to delete a task
+// Function to delete a task
+function deleteTask(taskId) {
+    console.log(taskId); // Add this line to log the task ID
+    fetch(`/tasks/${taskId}`, {
+        method: 'DELETE'
+    })
+    .then(response => {
+        if (response.status === 200) {
+            loadTasks();
+        }
+    });
+}
+     // Function to toggle task completion
+        function toggleTaskComplete(task) {
+            fetch(`/tasks/${task.id}`, {
+                method: 'PUT'
+            })
+            .then(response => {
+                if (response.status === 200) {
+                    loadTasks();
+                }
+            });
+        }
+
+        // Load tasks on page load
+        loadTasks();
+    </script>
+</body>
+</html>
+ -->
